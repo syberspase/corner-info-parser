@@ -1,2 +1,49 @@
 Require JDK 1.8
 Import maven project to Eclipse then right click project to run as JUnit test.
+
+There are two ways to extends the validation:
+
+In Java, extends abstract class RecordSpecInJava and implements validate(String value), e.g.:
+    // First
+    public static class RecordSpecProcess extends RecordSpecInJava {
+        @Override
+        public boolean validate(String value) throws CornerValidationException {
+            return value.length() > 2;
+        }
+    }
+    
+    // Then
+    CornerInfoParser parser = new CornerInfoParser();
+    RecordSpec = new RecordSpecProcess();
+    // Adds more records in csv column order.
+    parser.addRecord((value) -> { // Record process
+        try {
+            return specProcess.validate(value);
+        } catch (CornerValidationException e1) {
+            return false;
+        }
+    }); 
+    
+    // Finally
+    parser.isValid(classloader.getResource("CornerInfoGood.csv"))
+
+
+In Javascript, create Javascript spec and validate record by RecordSpecInJavascript, e.g.:
+    // First
+    RecordSpec specProcess = new RecordSpecInJavascript();
+    ((RecordSpecInJavascript) specProcess).setSpec(classloader.getResource("process.spec.js"));
+    
+    // Then 
+    CornerInfoParser parser = new CornerInfoParser();
+    // Adds more records in csv column order.
+    parser.addRecord((value) -> { // Record process
+        try {
+            return specProcess.validate(value);
+        } catch (CornerValidationException e1) {
+            return false;
+        }
+    }); 
+    
+    // Finally
+    parser.isValid(classloader.getResource("CornerInfoGood.csv"))
+    

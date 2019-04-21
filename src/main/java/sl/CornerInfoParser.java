@@ -1,6 +1,5 @@
 package sl;
 
-
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -10,9 +9,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
-
-import sl.CornerRecordSpec.RecordSpecInJavascript;
-
 
 /**
  * Write a verification tool that reads a csv file and reports whether each row
@@ -25,52 +21,63 @@ import sl.CornerRecordSpec.RecordSpecInJavascript;
  * engineers can have full certainty in your solution working, even with future
  * enhancements being continuously integrated.
  * 
- * Copyright text file is from
- * https://raw.githubusercontent.com/InsightSoftwareConsortium/ITK/master/Modules/ThirdParty/KWSys/src/KWSys/Copyright.txt
- * 
- * @author Shep Liu
+ * @author Shep Liu(syberspase@gmail.com)
  *
  */
 public class CornerInfoParser {
-	@FunctionalInterface
-	public static interface InfoRecord {
-		public boolean isValid(String value);
-	}
+    /**
+     * Record interface. Parser has a list of Records with implemented isValid().
+     */
+    @FunctionalInterface
+    public static interface InfoRecord {
+        public boolean isValid(String value);
+    }
 
-	private class BoolWrapper {
-		public boolean value = true;
-	}
+    /**
+     * Boolean wrapper for stream iteration.
+     */
+    private class BoolWrapper {
+        public boolean value = true;
+    }
 
+    private static final Logger LOGGER = Logger.getLogger(CornerInfoParser.class.getName());
+    private List<InfoRecord> records = new ArrayList<InfoRecord>();
 
-    	private static final Logger LOGGER = Logger.getLogger(CornerInfoParser.class.getName());
-	private List<InfoRecord> fields = new ArrayList<InfoRecord>();
+    /**
+     * Adds record to csv parser, in order of csv columns.
+     * @param record
+     * @return
+     */
+    public CornerInfoParser addRecord(InfoRecord record) {
+        records.add(record);
+        return this;
+    }
 
-	public CornerInfoParser addRecord(InfoRecord field) {
-		fields.add(field);
-		return this;
-	}
-
-	public boolean isValid(URL csvUrl) throws CornerValidationException {
-		final BoolWrapper isValid = new BoolWrapper();
-		try (Stream<String> csv = Files.lines(Paths.get(csvUrl.toURI()))) {
-			csv.forEach((line) -> {
-				// Ignore empty lines
-				if (line.trim().length() != 0) {
-					String[] fieldValues = line.split(",");
-					for (int i = 0; i < fieldValues.length; i++) {
-						if (!fields.get(i).isValid(fieldValues[i].trim())) {
-							LOGGER.severe("Invalid csv file because of "+fieldValues[i].trim());
-							isValid.value = false;
-							break;
-						}
-					}
-				}
-			});
-		} catch (URISyntaxException e) {
-			throw new CornerValidationException(e);
-		} catch (IOException e) {
-			throw new CornerValidationException(e);
-		}
-		return isValid.value;
-	}
+    /**
+     * Validates a csv by list of record specifications.
+     * @param csvUrl
+     * @return
+     * @throws CornerValidationException
+     */
+    public boolean isValid(URL csvUrl) throws CornerValidationException {
+        final BoolWrapper isValid = new BoolWrapper();
+        try (Stream<String> csv = Files.lines(Paths.get(csvUrl.toURI()))) {
+            csv.forEach((line) -> {
+                // Ignore empty lines
+                if (line.trim().length() != 0) {
+                    String[] fieldValues = line.split(",");
+                    for (int i = 0; i < fieldValues.length; i++) {
+                        if (!records.get(i).isValid(fieldValues[i].trim())) {
+                            LOGGER.severe("Invalid csv file because of " + fieldValues[i].trim());
+                            isValid.value = false;
+                            break;
+                        }
+                    }
+                }
+            });
+        } catch (URISyntaxException | IOException e) {
+            throw new CornerValidationException(e);
+        }
+        return isValid.value;
+    }
 }
