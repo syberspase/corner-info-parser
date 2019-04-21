@@ -42,7 +42,7 @@ public class CornerInfoParser {
 	}
 
 
-    private static final Logger LOGGER = Logger.getLogger(CornerInfoParser.class.getName());
+    	private static final Logger LOGGER = Logger.getLogger(CornerInfoParser.class.getName());
 	private List<InfoRecord> fields = new ArrayList<InfoRecord>();
 
 	public CornerInfoParser addRecord(InfoRecord field) {
@@ -72,46 +72,5 @@ public class CornerInfoParser {
 			throw new CornerValidationException(e);
 		}
 		return isValid.value;
-	}
-
-	public static void main(String[] args) {
-		CornerInfoParser parser = new CornerInfoParser();
-		// Adds fields in order.
-		parser.addRecord((value) -> {
-			try {
-				RecordSpecInJavascript spec = new RecordSpecInJavascript();
-				URL url = ClassLoader.getSystemClassLoader().getResource("process.spec.js");
-				spec.setSpec(url);
-				return spec.validate(value);
-			} catch (CornerValidationException e1) {
-				return false;
-			}
-		}); // Record process
-		parser.addRecord((value) -> { // Record voltage
-			try {
-				RecordSpecInJavascript spec = new RecordSpecInJavascript();
-				URL url = ClassLoader.getSystemClassLoader().getResource("voltage.spec.js");
-				spec.setSpec(url);
-				return spec.validate(value);
-			} catch (CornerValidationException e1) {
-				return false;
-			}
-		});
-		parser.addRecord((value) -> { // Record temperature
-			try {
-				RecordSpecInJavascript spec = new RecordSpecInJavascript();
-				URL url = ClassLoader.getSystemClassLoader().getResource("temperature.spec.js");
-				spec.setSpec(url);
-				return spec.validate(value);
-			} catch (CornerValidationException e1) {
-				return false;
-			}
-		});
-		try {
-			URL url = ClassLoader.getSystemClassLoader().getResource("/src/test/resources/CornerInfo.csv");
-			LOGGER.info(""+parser.isValid(url));
-		} catch (CornerValidationException e) {
-			LOGGER.severe(e.getMessage());
-		}
 	}
 }
